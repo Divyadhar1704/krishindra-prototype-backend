@@ -1,41 +1,39 @@
-from sentence_transformers import SentenceTransformer
+import os
+
+from dotenv import load_dotenv
+from google import genai
+
+load_dotenv()
 
 
 class Embedder:
 
     def __init__(self):
 
-        print("Loading embedding model...")
+        print("Using Gemini Embedding API...")
 
-        self.model = SentenceTransformer(
-            "all-MiniLM-L6-v2"
+        self.client = genai.Client(
+            api_key=os.getenv("GEMINI_API_KEY")
         )
-
-        print("Embedding model loaded.")
 
     def embed(self, text):
 
-        embedding = self.model.encode(
-            text,
-            convert_to_numpy=True
+        response = self.client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=text
         )
 
-        return embedding
+        return response.embeddings[0].values
 
     def embed_query(self, query):
 
-        embedding = self.model.encode(
-            query,
-            convert_to_numpy=True
-        )
-
-        return embedding
+        return self.embed(query)
 
     def embed_batch(self, texts):
 
-        embeddings = self.model.encode(
-            texts,
-            convert_to_numpy=True
-        )
+        embeddings = []
+
+        for text in texts:
+            embeddings.append(self.embed(text))
 
         return embeddings
